@@ -134,17 +134,33 @@ router.post("/:id/comments", (req, res) => {
 // PUT REQUEST
 // PUT REQUEST
 router.put("/:id", (req, res) => {
-  const changes = req.body;
-  Data.update(req.params.id, changes)
-    .then((post) => {
-      res.status(201).json(req.body);
-    })
-    .catch((error) => {
-      console.log(error);
-      res
-        .status(500)
-        .json({ error: "The post information could not be modified." });
+    const { id } = req.params;
+    Data.findById(id).then((post) => {
+      console.log(post);
+      if (!post.length) {
+        res
+          .status(404)
+          .json({ message: "The post with the specified ID does not exist." });
+      } else {
+        const updatedPost = req.body;
+        if (!updatedPost.title || !updatedPost.contents) {
+          res.status(400).json({
+            errorMessage: "Please provide a title and contents for the post.",
+          });
+        } else {
+          Data.update(id, updatedPost)
+              .then((updated) => {
+                  console.log(updated);
+                  res.status(201).json(updatedPost);
+              })
+              .catch(error => {
+                  res.status(500).json({
+                    error: "There was an error while saving the post to the database",
+                  });
+              })
+        }
+      }
     });
-});
+  });
 
 module.exports = router;
